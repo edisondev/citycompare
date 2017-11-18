@@ -1,5 +1,9 @@
 {% extends "bootstrap/base.html" %}
-{% block title %}This is an example page{% endblock %}
+{% block title %} City Compare {% endblock %}
+{% block styles %}
+    {{super()}}
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.4/css/select2.min.css" rel="stylesheet" />
+{% endblock %}
 
 {% block navbar %}
 <div class="navbar navbar-fixed-top">
@@ -9,4 +13,27 @@
 
 {% block content %}
     <h1>City Compare</h1>
+    <div class="well">
+        <form id="cityForm" method="POST" class="form">
+            {{ city_form.hidden_tag() }}
+            <div class="form-group">
+                {{ city_form.first.label }}
+                {{ city_form.first }}
+                {{ city_form.second.label }}
+                {{ city_form.second }}
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+    {{super()}}
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.4/js/select2.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            $('#first').select2();
+            $('#second').select2();
+        });
+    </script>
 {% endblock %}
