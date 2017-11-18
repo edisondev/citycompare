@@ -15,7 +15,7 @@ from flask import request
 def index():
     city_form = CityForm()
     if request.method == 'POST' and city_form.validate():
-        flash('loading {} vs {}...'.format(city_form.first.data, city_form.second.data))
+        # flash('loading {} vs {}...'.format(city_form.first.data, city_form.second.data))
         return redirect(url_for('plot', first=city_form.first.data, second=city_form.second.data))
     return render_template(
         'index.html',
@@ -24,14 +24,19 @@ def index():
 
 @flask_app.route('/plot', methods=['GET', 'POST'])
 def plot():
+    city_form = CityForm()
+    if request.method == 'POST' and city_form.validate():
+        # flash('loading {} vs {}...'.format(city_form.first.data, city_form.second.data))
+        return redirect(url_for('plot', first=city_form.first.data, second=city_form.second.data))
+
     first = request.args.get('first')
     second = request.args.get('second')
 
     if first == second:
-        flash('Comparing the same city to itself is too easy...')
+        flash('Pick two different cities', 'error')
         return render_template(
             'index.html',
-            city_form=CityForm(),
+            city_form=city_form,
         )
 
     # get the matched fields
@@ -47,6 +52,6 @@ def plot():
 
     return render_template(
         'index.html',
-        city_form=CityForm(),
+        city_form=city_form,
         plots=plots
     )

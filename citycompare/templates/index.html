@@ -1,56 +1,69 @@
 {% extends "bootstrap/base.html" %}
+{% import "bootstrap/utils.html" as utils %}
 {% block title %} City Compare {% endblock %}
 {% block styles %}
-    {{super()}}
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/css/bootstrap.min.css" integrity="sha384-PsH8R72JQ3SOdhVi3uxftmaW6Vc51MKb0q5P2rRUpPvrszuE4W1povHYgTpBfshb" crossorigin="anonymous">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.4/css/select2.min.css" rel="stylesheet" />
 {% endblock %}
 
 {% block navbar %}
-<div class="navbar navbar-fixed-top">
-  <!-- ... -->
-</div>
 {% endblock %}
 
 {% macro render_field(field) %}
-  {{ field.label }} {{ field(**kwargs)|safe }}
+  {{ field(**kwargs)|safe }}
   {% if field.errors %}
     <ul class=errors>
     {% for error in field.errors %}
-      <li>{{ error }}</li>
+        {{ utils.flashed_messages(messages=[['error', error],]) }}
     {% endfor %}
     </ul>
   {% endif %}
 {% endmacro %}
 
 {% block content %}
-    <h1>City Compare</h1>
-    <div class="well">
+<div class="container-fluid">
+    {% if get_flashed_messages() %}
+        {{ utils.flashed_messages(dismissible=True) }}
+    {% endif %}
+    <br/>
+    <div class="jumbotron">
         <form id="cityForm" method="POST" class="form">
             {{ city_form.hidden_tag() }}
-            <div class="form-group">
-                {{ render_field(city_form.first) }}
-                {{ render_field(city_form.second) }}
-                <input type=submit value=Submit>
+            <div class="row">
+                <div class="col">
+                    {{ render_field(city_form.first) }}
+                </div>
+                <div class="col">
+                    {{ render_field(city_form.second) }}
+                </div>
             </div>
+            <br/>
+            <div class="row"><div class="col">
+                 <button class="btn btn-large btn-block btn-success" type="submit">Submit</button>
+            </div></div>
         </form>
     </div>
     {% if plots %}
         {% for plot in plots %}
-            <div class="well">
+            <div class="card">
                 {{ plot|safe }}
             </div>
+            <br/>
         {% endfor %}
     {% endif %}
 </div>
 {% endblock %}
 
 {% block scripts %}
-    {{super()}}
+    <!--{{super()}}-->
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.3/umd/popper.min.js" integrity="sha384-vFJXuSJphROIrBnz7yo7oB41mKfc8JzQZiCq4NCceLEaO4IHwicKwpJf9c9IpFgh" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/js/bootstrap.min.js" integrity="sha384-alpBpkh1PFOepccYVYDB4do5UnbKysX5WZXm3XxPqe5iKTfUKjNkCk9SaVuEZflJ" crossorigin="anonymous"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.4/js/select2.min.js"></script>
     <script>
         $(document).ready(function() {
-            $('#first').select2();
-            $('#second').select2();
+            $('#first').select2({ width: '100%' });
+            $('#second').select2({ width: '100%' });
         });
     </script>
 {% endblock %}
