@@ -1,18 +1,18 @@
 from flask_wtf import Form
 from wtforms import SelectField
 
+CITY_CHOICES = [
+    ('', ''),
+    ('calgary', 'Calgary'),
+    ('edmonton', 'Edmonton'),
+]
+
 class CityForm(Form):
     first = SelectField(
         label='City 1',
-        choices=[
-            ('Calgary', 'calgary'),
-            ('Edmonton', 'edmonton'),
-        ]
+        choices=CITY_CHOICES
     )
     second = SelectField(
         label='City 2',
-        choices=[
-            ('Calgary', 'calgary'),
-            ('Edmonton', 'edmonton'),
-        ]
+        choices=CITY_CHOICES
     )

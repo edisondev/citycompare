@@ -11,19 +11,36 @@
 </div>
 {% endblock %}
 
+{% macro render_field(field) %}
+  {{ field.label }} {{ field(**kwargs)|safe }}
+  {% if field.errors %}
+    <ul class=errors>
+    {% for error in field.errors %}
+      <li>{{ error }}</li>
+    {% endfor %}
+    </ul>
+  {% endif %}
+{% endmacro %}
+
 {% block content %}
     <h1>City Compare</h1>
     <div class="well">
         <form id="cityForm" method="POST" class="form">
             {{ city_form.hidden_tag() }}
             <div class="form-group">
-                {{ city_form.first.label }}
-                {{ city_form.first }}
-                {{ city_form.second.label }}
-                {{ city_form.second }}
+                {{ render_field(city_form.first) }}
+                {{ render_field(city_form.second) }}
+                <input type=submit value=Submit>
             </div>
         </form>
     </div>
+    {% if plots %}
+        {% for plot in plots %}
+            <div class="well">
+                {{ plot|safe }}
+            </div>
+        {% endfor %}
+    {% endif %}
 </div>
 {% endblock %}
 
