@@ -2,7 +2,15 @@ flask==0.10.1
 bs4==0.0.1
 requests==2.9.1
 gunicorn==19.6.0
+lxml
+celery
+redis
 honcho
+flask-sqlalchemy
+flask-migrate
+sqlalchemy-migrate
+flask-script
+flask-restless
 flask-bootstrap
 flask-wtf
 psycopg2
