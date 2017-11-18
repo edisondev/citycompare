@@ -1,17 +1,34 @@
+from sodapy import Socrata
+import pandas as pd
+
 AIR_QUALITY = 'Air Quality'
 EMERGENCY_RESPONSE = 'Emergency Response'
 
-def calgary_air_quality(api):
-    pass
 
+def fetch_results(api, order=None):
+    client = Socrata(api['root'], None)
+    return client.get(api['code'], order=order, limit=2000)
+
+def calgary_air_quality(api):
+    results = fetch_results(api, order='date DESC')
+    results_df = pd.DataFrame.from_records(results)
+    clean_results_df = pd.DataFrame()
+    query = results_df.loc[results_df['parameter'] == 'Air Quality Index']
+    clean_results_df['date'] = pd.to_datetime(query['date'])
+    clean_results_df['air_quality'] = query['average_daily_value']
+    return clean_results_df
+
+def edmonton_air_quality(api):
+    results = fetch_results(api, order='date_measured DESC')
+    results_df = pd.DataFrame.from_records(results)
+    clean_results_df = pd.DataFrame()
+    query = results_df.loc[results_df['parameter_measured'] == 'Air Quality Index']
+    clean_results_df['date'] = pd.to_datetime(query['date_measured'])
+    clean_results_df['air_quality'] = query['average_daily_value']
+    return clean_results_df
 
 def calgary_emergency_response(api):
     pass
-
-
-def edmonton_air_quality(api):
-    pass
-
 
 def edmonton_emergency_response(api):
     pass
@@ -20,21 +37,33 @@ def edmonton_emergency_response(api):
 CITY_DATA_API_MAP = {
     'calgary': {
         AIR_QUALITY: {
-            'api': r'https://data.calgary.ca/api/odata/v4/uqjm-jxgp',
+            'api': {
+                'root': r'data.calgary.ca',
+                'code': r'uqjm-jxgp'
+            },
             'callback': calgary_air_quality
         },
         EMERGENCY_RESPONSE: {
-            'api': r'https://data.calgary.ca/api/odata/v4/bdez-pds9',
+            'api': {
+                'root': r'data.calgary.ca',
+                'code': r'bdez-pds9'
+            },
             'callback': calgary_emergency_response
         }
     },
     'edmonton': {
         AIR_QUALITY: {
-            'api': r'https://data.calgary.ca/api/odata/v4/uqjm-jxgp',
+            'api': {
+                'root': r'data.edmonton.ca',
+                'code': r'44dx-d5qn'
+            },
             'callback': edmonton_air_quality
         },
         EMERGENCY_RESPONSE: {
-            'api': r'https://data.calgary.ca/api/odata/v4/bdez-pds9',
+            'api': {
+                'root': r'data.calgary.ca',
+                'code': r'bdez-pds9'
+            },
             'callback': edmonton_emergency_response
         }
     },
