@@ -7,7 +7,7 @@ EMERGENCY_RESPONSE = 'Emergency Response'
 
 def fetch_results(api, order=None, select=None, where=None, limit=2000):
     client = Socrata(api['root'], None)
-    return client.get(api['code'], order=order, select=select, where=where, limit=2000)
+    return client.get(api['code'], order=order, select=select, where=where, limit=limit)
 
 def calgary_air_quality(api):
     results = fetch_results(api, order='date DESC')
@@ -31,9 +31,11 @@ def calgary_emergency_response(api):
     results = fetch_results(api, select = 'alarm_year,incident_count,major_incident_type',
                             where = 'alarm_year>2014', limit=10000)
     df = pd.DataFrame.from_records(results)
+    print(df.shape)
     df['incident_count'] = pd.to_numeric(df['incident_count'])
     alarm_years = df.alarm_year.unique().tolist()
-    alarm_type  = ['Medical/Rescue', 'Fire'] # Arbitrarily selected. Full list by: df.major_incident_type.unique().tolist()
+    print(alarm_years)
+    alarm_type  = ['Fire'] # Arbitrarily selected. Full list by: df.major_incident_type.unique().tolist()
 
     year = []
     inc_type = []
@@ -56,6 +58,7 @@ def edmonton_emergency_response(api):
     results = fetch_results(api, select = 'dispatch_year, count, event_description',
                             where = 'dispatch_year>2014', limit=30000)
     df = pd.DataFrame.from_records(results)
+    print(df.shape)
     df['count'] = pd.to_numeric(df['count'])
     df['event_description'] = df['event_description'].replace(
         ['FIRE', 'VEHICLE FIRE', 'OUTSIDE FIRE', 'PERMIT-BURNING OR OTHER'], 'Fire')
@@ -63,7 +66,8 @@ def edmonton_emergency_response(api):
 
 
     alarm_years = df.dispatch_year.unique().tolist()
-    alarm_type  = ['Fire', 'Medical/Rescue'] # Arbitrarily selected. Full list by: df.event_description.unique().tolist()
+    print(alarm_years)
+    alarm_type  = ['Fire'] # Arbitrarily selected. Full list by: df.event_description.unique().tolist()
 
     year = []
     inc_type = []
