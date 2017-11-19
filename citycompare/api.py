@@ -1,6 +1,7 @@
 from __future__ import absolute_import
 from .emergency_response import edmonton_fires, calgary_fires
 from .education import calgary_voters, edmonton_voters
+from .impaired_drivers import can_impaired_driving
 from sodapy import Socrata
 import pandas as pd
 
@@ -145,7 +146,15 @@ CITY_DATA_API_MAP = {
                 'code': r'rw5g-9itp'
             },
             'callback': calgary_voters
-        }
+        },
+        IMPAIRED_DRIVING: {
+            'api': {
+                'root': r'dashboard.edmonton.ca',
+                'code': r'kcvf-z5h9',
+                'city': 'Calgary, AB'
+            },
+            'callback': can_impaired_driving
+        },
     },
     'edmonton': {
         AIR_QUALITY: {
@@ -182,7 +191,15 @@ CITY_DATA_API_MAP = {
                 'code': r'b9xs-rggn'
             },
             'callback': edmonton_voters
-        }
+        },
+        IMPAIRED_DRIVING: {
+            'api': {
+                'root': r'dashboard.edmonton.ca',
+                'code': r'kcvf-z5h9',
+                'city': 'Edmonton, AB'
+            },
+            'callback': can_impaired_driving
+        },
     },
     'another city': {
         AIR_QUALITY: {

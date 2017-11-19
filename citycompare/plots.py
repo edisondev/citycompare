@@ -1,5 +1,5 @@
 from __future__ import absolute_import
-from .api import AIR_QUALITY, EMERGENCY_RESPONSE, FIRE_RESPONSE, BUSINESS, VOTERS
+from .api import AIR_QUALITY, EMERGENCY_RESPONSE, FIRE_RESPONSE, BUSINESS, VOTERS, IMPAIRED_DRIVING
 import plotly
 
 import plotly.graph_objs as go
@@ -112,6 +112,20 @@ def voter_plot(data):
     )
     return plot_html
 
+def impaired_plot(data):
+    plot_data = []
+    for city in data:
+        plot_data.append(Bar(x=data[city]['date'], y=data[city]['number_impaired'], name=city))
+
+    plot_html = plotly.offline.plot(
+        {
+            'data': plot_data,
+            'layout': Layout(title='Impaired Drivers', legend={'orientation': 'h'})
+        },
+        output_type='div'
+    )
+    return plot_html
+
 
 PLOT_MAP = {
     AIR_QUALITY: air_quality_plot,
@@ -119,6 +133,7 @@ PLOT_MAP = {
     EMERGENCY_RESPONSE: emergency_resp_plot,
     BUSINESS: business_plot,
     VOTERS: voter_plot,
+    IMPAIRED_DRIVING: impaired_plot,
 }
 
 def generate_plot(field, data):
