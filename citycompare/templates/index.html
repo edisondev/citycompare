@@ -21,13 +21,12 @@
 {% endmacro %}
 
 {% block content %}
-<img src='static/logo.png' width=50%>
-
 <div class="container-fluid">
     {% if get_flashed_messages() %}
         {{ utils.flashed_messages(dismissible=True) }}
     {% endif %}
     <br/>
+    <img class="center-block" src="static/logo.png" />
     <div class="jumbotron">
         <form id="cityForm" method="POST" class="form">
             {{ city_form.hidden_tag() }}
