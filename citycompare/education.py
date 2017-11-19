@@ -21,12 +21,3 @@ def edmonton_voters(api):
     query = results_df.loc[results_df['contest_name'] == 'Mayor']
     total_voters = query['votes_received'].fillna(0).astype(int).sum()
     return total_voters
-
-
-if __name__=='__main__':
-    print edmonton_voters(
-        {
-            'root': r'data.edmonton.ca',
-            'code': r'b9xs-rggn'
-        }
-    )
