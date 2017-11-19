@@ -1,5 +1,6 @@
 from __future__ import absolute_import
 from .emergency_response import edmonton_fires, calgary_fires
+from .education import calgary_voters, edmonton_voters
 from sodapy import Socrata
 import pandas as pd
 
@@ -7,6 +8,8 @@ AIR_QUALITY = 'Air Quality'
 EMERGENCY_RESPONSE = 'Emergency Response'
 BUSINESS = 'Business Licenses'
 FIRE_RESPONSE = 'Fire Response'
+VOTERS = 'Voters'
+IMPAIRED_DRIVING = 'Impaired Driving'
 
 def fetch_results(api, order=None, select=None, where=None, rowlimit=2000):
     client = Socrata(api['root'], None)
@@ -135,6 +138,13 @@ CITY_DATA_API_MAP = {
                 'code': r'agnq-4jj6'
             },
             'callback': calgary_business
+        },
+        VOTERS: {
+            'api': {
+                'root': r'data.calgary.ca',
+                'code': r'rw5g-9itp'
+            },
+            'callback': calgary_voters
         }
     },
     'edmonton': {
@@ -165,6 +175,13 @@ CITY_DATA_API_MAP = {
                 'code': r'3trf-izgx'
             },
             'callback': edmonton_business
+        },
+        VOTERS: {
+            'api': {
+                'root': r'data.edmonton.ca',
+                'code': r'b9xs-rggn'
+            },
+            'callback': edmonton_voters
         }
     },
     'another city': {

@@ -1,5 +1,5 @@
 from __future__ import absolute_import
-from .api import AIR_QUALITY, EMERGENCY_RESPONSE, FIRE_RESPONSE, BUSINESS
+from .api import AIR_QUALITY, EMERGENCY_RESPONSE, FIRE_RESPONSE, BUSINESS, VOTERS
 import plotly
 
 import plotly.graph_objs as go
@@ -87,13 +87,38 @@ def fire_response_plot(data):
     )
     return plot_html
 
+POPULATIONS = {
+    'calgary': 1266000.0,
+    'edmonton': 928182.0,
+}
+
+def voter_plot(data):
+    cities = []
+    values = []
+    for city in data:
+        if city in POPULATIONS:
+            cities.append(city)
+            values.append(100.0*float(data[city])/POPULATIONS[city])
+
+    plot_data = []
+    plot_data.append(Bar(x=cities, y=values))
+
+    plot_html = plotly.offline.plot(
+        {
+            'data': plot_data,
+            'layout': Layout(title='Percent Who Voted', legend={'orientation': 'h'})
+        },
+        output_type='div'
+    )
+    return plot_html
+
 
 PLOT_MAP = {
     AIR_QUALITY: air_quality_plot,
     FIRE_RESPONSE: fire_response_plot,
     EMERGENCY_RESPONSE: emergency_resp_plot,
-    BUSINESS: business_plot
-
+    BUSINESS: business_plot,
+    VOTERS: voter_plot,
 }
 
 def generate_plot(field, data):
