@@ -1,13 +1,17 @@
+from __future__ import absolute_import
+from .emergency_response import edmonton_fires, calgary_fires
 from sodapy import Socrata
 import pandas as pd
 
 AIR_QUALITY = 'Air Quality'
 EMERGENCY_RESPONSE = 'Emergency Response'
 BUSINESS = 'Business Licenses'
+FIRE_RESPONSE = 'Fire Response'
 
 def fetch_results(api, order=None, select=None, where=None, rowlimit=2000):
     client = Socrata(api['root'], None)
     return client.get(api['code'], order=order, select=select, where=where, limit=rowlimit)
+
 
 def calgary_air_quality(api):
     results = fetch_results(api, order='date DESC')
@@ -18,6 +22,7 @@ def calgary_air_quality(api):
     clean_results_df['air_quality'] = query['average_daily_value']
     return clean_results_df
 
+
 def edmonton_air_quality(api):
     results = fetch_results(api, order='date_measured DESC')
     results_df = pd.DataFrame.from_records(results)
@@ -27,14 +32,13 @@ def edmonton_air_quality(api):
     clean_results_df['air_quality'] = query['average_daily_value']
     return clean_results_df
 
+
 def calgary_emergency_response(api):
     results = fetch_results(api, select = 'alarm_year,incident_count,major_incident_type',
                             where = 'alarm_year>2014', rowlimit=10000)
     df = pd.DataFrame.from_records(results)
-    print(df.shape)
     df['incident_count'] = pd.to_numeric(df['incident_count'])
     alarm_years = df.alarm_year.unique().tolist()
-    print(alarm_years)
     alarm_type  = ['Fire'] # Arbitrarily selected. Full list by: df.major_incident_type.unique().tolist()
 
     year = []
@@ -50,23 +54,19 @@ def calgary_emergency_response(api):
 
     d = {'year': year, 'incident type': inc_type, 'count': count}
     conc_df = pd.DataFrame(data=d)
-    return  conc_df
-
+    return conc_df
 
 
 def edmonton_emergency_response(api):
     results = fetch_results(api, select = 'dispatch_year, count, event_description',
                             where = 'dispatch_year>2014', rowlimit=30000)
     df = pd.DataFrame.from_records(results)
-    print(df.shape)
     df['count'] = pd.to_numeric(df['count'])
     df['event_description'] = df['event_description'].replace(
         ['FIRE', 'VEHICLE FIRE', 'OUTSIDE FIRE', 'PERMIT-BURNING OR OTHER'], 'Fire')
     df['event_description'] = df['event_description'].replace(['MEDICAL', 'RESCUE'], 'Medical/Rescue')
 
-
     alarm_years = df.dispatch_year.unique().tolist()
-    print(alarm_years)
     alarm_type  = ['Fire'] # Arbitrarily selected. Full list by: df.event_description.unique().tolist()
 
     year = []
@@ -87,12 +87,12 @@ def edmonton_emergency_response(api):
 def calgary_business(api):
     results = fetch_results(api, order='jobcreated DESC',rowlimit=50000)
     results_df = pd.DataFrame.from_records(results)
-    
+
     clean_df=results_df[results_df['jobstatusdesc']!='EXPIRED']
     clean_df=clean_df['licencetypes'].value_counts()
     clean_df=clean_df.iloc[::-1]
     clean_df.index=[x.upper() for x in clean_df.index.values]
-    
+
     return clean_df
 
 def edmonton_business(api):
@@ -115,6 +115,13 @@ CITY_DATA_API_MAP = {
             },
             'callback': calgary_air_quality
         },
+        FIRE_RESPONSE: {
+            'api': {
+                'root': r'data.calgary.ca',
+                'code': r'bdez-pds9'
+            },
+            'callback': calgary_fires
+        },
         EMERGENCY_RESPONSE: {
             'api': {
                 'root': r'data.calgary.ca',
@@ -128,7 +135,7 @@ CITY_DATA_API_MAP = {
                 'code': r'agnq-4jj6'
             },
             'callback': calgary_business
-        } 
+        }
     },
     'edmonton': {
         AIR_QUALITY: {
@@ -137,6 +144,13 @@ CITY_DATA_API_MAP = {
                 'code': r'44dx-d5qn'
             },
             'callback': edmonton_air_quality
+        },
+        FIRE_RESPONSE: {
+            'api': {
+                'root': r'data.edmonton.ca',
+                'code': r'f2hf-du2d'
+            },
+            'callback': edmonton_fires
         },
         EMERGENCY_RESPONSE: {
             'api': {
@@ -151,7 +165,7 @@ CITY_DATA_API_MAP = {
                 'code': r'3trf-izgx'
             },
             'callback': edmonton_business
-        } 
+        }
     },
     'another city': {
         AIR_QUALITY: {
