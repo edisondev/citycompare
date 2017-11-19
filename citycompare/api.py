@@ -3,11 +3,12 @@ import pandas as pd
 
 AIR_QUALITY = 'Air Quality'
 EMERGENCY_RESPONSE = 'Emergency Response'
+BUSINESS = 'Business Licenses'
 
 
-def fetch_results(api, order=None):
+def fetch_results(api, order=None, row_limit=2000):
     client = Socrata(api['root'], None)
-    return client.get(api['code'], order=order, limit=2000)
+    return client.get(api['code'], order=order, limit=row_limit)
 
 def calgary_air_quality(api):
     results = fetch_results(api, order='date DESC')
@@ -33,6 +34,27 @@ def calgary_emergency_response(api):
 def edmonton_emergency_response(api):
     pass
 
+def calgary_business(api):
+    results = fetch_results(api, order='jobcreated DESC',row_limit=50000)
+    results_df = pd.DataFrame.from_records(results)
+    
+    clean_df=results_df[results_df['jobstatusdesc']!='EXPIRED']
+    clean_df=clean_df['licencetypes'].value_counts()
+    clean_df=clean_df.iloc[::-1]
+    clean_df.index=[x.upper() for x in clean_df.index.values]
+    
+    return clean_df
+
+def edmonton_business(api):
+    results = fetch_results(api, order='status DESC',row_limit=50000)
+    results_df = pd.DataFrame.from_records(results)
+
+    clean_df=results_df[results_df['status']=='ISSUED']
+    clean_df=clean_df['business_category'].value_counts()
+    clean_df=clean_df.iloc[::-1] #reverse indeces
+    clean_df.index=[x.upper() for x in clean_df.index.values] #set labels to upper
+    return clean_df
+
 
 CITY_DATA_API_MAP = {
     'calgary': {
@@ -49,7 +71,14 @@ CITY_DATA_API_MAP = {
                 'code': r'bdez-pds9'
             },
             'callback': calgary_emergency_response
-        }
+        },
+        BUSINESS: {
+            'api': {
+                'root': r'data.calgary.ca',
+                'code': r'agnq-4jj6'
+            },
+            'callback': calgary_business
+        } 
     },
     'edmonton': {
         AIR_QUALITY: {
@@ -65,7 +94,14 @@ CITY_DATA_API_MAP = {
                 'code': r'bdez-pds9'
             },
             'callback': edmonton_emergency_response
-        }
+        },
+        BUSINESS: {
+            'api': {
+                'root': r'data.edmonton.ca',
+                'code': r'3trf-izgx'
+            },
+            'callback': edmonton_business
+        } 
     },
     'another city': {
         AIR_QUALITY: {

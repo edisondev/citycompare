@@ -4,7 +4,7 @@ from citycompare import flask_app
 from sodapy import Socrata
 import pandas as pd
 import plotly
-from plotly.graph_objs import Scatter, Layout
+from plotly.graph_objs import Scatter, Layout,Bar
 
 from .forms import CityForm
 from .api import matched_city_data
