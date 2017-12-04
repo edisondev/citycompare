@@ -46,33 +46,44 @@ def return_tokens(pipeline, text):
     return stemmed_tokens
 
 #Generate LDA corpus
-def generate_LDA_corpus(pipeline):
-    print("Generated Corpus")
-    #Load the random wikipedia articles:
-    wiki_list=pickle.load(open(r"C:\Users\h192456\Desktop\backup for me\wiki_listv2.pkl",'rb'))
-    pipeline=initiate_pipline()    
-    wiki_documents=[]
+def generate_LDA_corpus():
+    print("Generate Corpus")
+    pipeline=initiate_pipline()     
+    trainDocuments=[]
     t=time.time()
-    # loop through document list        
-    for i in wiki_list:  
-        # add tokens to list
-        wiki_documents.append(return_tokens(pipeline, i ))
     
-    del wiki_list
+    #Load the random wikipedia articles:
+#    wiki_list=pickle.load(open(r"C:\Users\h192456\Desktop\backup for me\wiki_listv2.pkl",'rb'))   
+#    # loop through document list        
+#    for i in wiki_list:  
+#        # add tokens to list
+#        trainDocuments.append(return_tokens(pipeline, i ))
+#    
+#    del wiki_list
+    
+    #Load city Database descriptions
+    path=r'C:\Users\Nick\Dropbox\Work\Data Science\14 - City Compare\citycompare\citycompare\GlobalDatabase.csv'
+    cityDataset=pd.read_csv(path, 
+                            sep=';',
+                            encoding='utf-8')
+    for i in cityDataset['description']:  
+        # add tokens to list
+        trainDocuments.append(return_tokens(pipeline, i ))
+    
     #Create an LDA topic model
-    pipeline['dictionary'] = corpora.Dictionary(wiki_documents)
-    pipeline['corpus'] = [pipeline['dictionary'].doc2bow(text) for text in wiki_documents]    
+    pipeline['dictionary'] = corpora.Dictionary(trainDocuments)
+    pipeline['corpus'] = [pipeline['dictionary'].doc2bow(text) for text in trainDocuments]    
     ldamodel = gensim.models.ldamodel.LdaModel(pipeline['corpus'], 
-                                               NUM_TOPICS=100, 
+                                               num_topics=50, 
                                                id2word = pipeline['dictionary'],
                                                update_every=1,
                                                chunksize=1000,
                                                passes=5,
                                                random_state=1234)
     print(time.time()-t)
-    print(len(wiki_documents))
+    print(len(trainDocuments))
     pickle.dump(pipeline,
-                open(r"C:\Users\h192456\Desktop\backup for me\14 - City Compare\citycompare\citycompare\pipeline.pkl", 'wb'), 
+                open(r'C:\Users\Nick\Dropbox\Work\Data Science\14 - City Compare\citycompare\citycompare\pipeline2.pkl', 'wb'), 
                 protocol=2)
     return ldamodel,pipeline
 
