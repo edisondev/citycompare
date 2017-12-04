@@ -14,11 +14,13 @@ import time
 import pandas as pd
 import numpy as np
 from scipy import spatial
+import os
 
 from matplotlib import pyplot as plt
 
 
 NUM_TOPICS=100
+PATH='C:\Users\Nick\Dropbox\Work\Data Science\14 - City Compare\citycompare\citycompare'
 
 def initiate_pipline():
     tokenizer = RegexpTokenizer(r'\w+') #Words Separator
@@ -33,6 +35,7 @@ def initiate_pipline():
 def return_tokens(pipeline, text):
     # clean and tokenize document string
     #TODO: remove numbers from string
+    #TODO: remove unicode characters from string
     
     raw = text.lower()
     tokens = pipeline['tokenizer'].tokenize(raw)
@@ -97,7 +100,7 @@ def sparse2array(sparseArray):
         outArray[sparseArray[index][0]]=sparseArray[index][1]
     return outArray
 
-def parseTopicMatrix(topicMatrix, cityDataset, threshold=230):
+def parseTopicMatrix(topicMatrix, cityDataset, threshold=250):
     column_names=['City1',
                   'Description1',
                   'Description2',
@@ -110,14 +113,17 @@ def parseTopicMatrix(topicMatrix, cityDataset, threshold=230):
             if topicMatrix[kMainTopic][kSideTopic]>threshold:
                 print(topicMatrix[kMainTopic][kSideTopic])
                 data=pd.DataFrame([[cityDataset['city'][kMainTopic],
-                                   cityDataset['description'][kMainTopic],
-                                   cityDataset['description'][kSideTopic],
+                                   cityDataset['description'][kMainTopic].encode('ascii','ignore').decode('unicode_escape'),
+                                   cityDataset['description'][kSideTopic].encode('ascii','ignore').decode('unicode_escape'),
                                    cityDataset['city'][kSideTopic],
                                    cityDataset['download_link'][kMainTopic],
                                    cityDataset['download_link'][kSideTopic]]],
                                    columns=column_names)
                 #print(data)
                 df=df.append(data,ignore_index=True)
+                
+    df.to_html(os.path.join(r'C:\Users\Nick\Dropbox\Work\Data Science\14 - City Compare\citycompare\citycompare',
+                            r'matchedDatasets.html'))
     return df
 
 
@@ -127,15 +133,29 @@ def print_specific_lines(k,num=0):
     print(" ")
     print(k['City2'][num])
     print(k['Description2'][num])
-            
+    
+    
+def load_pickle_file():
+    lda=pickle.load(open(r'C:\Users\Nick\Dropbox\Work\Data Science\14 - City Compare\citycompare\citycompare\lda2.pkl','rb'))
+    pipeline=pickle.load(open(r'C:\Users\Nick\Dropbox\Work\Data Science\14 - City Compare\citycompare\citycompare\pipeline.pkl','rb'))
+    topicMatrix=np.genfromtxt(r'C:\Users\Nick\Dropbox\Work\Data Science\14 - City Compare\citycompare\citycompare\topicMatrix.csv', 
+                                     delimiter=',',
+                                     dtype=np.uint8)
+    path=r'C:\Users\Nick\Dropbox\Work\Data Science\14 - City Compare\citycompare\citycompare\GlobalDatabase.csv'
+    cityDataset=pd.read_csv(path, 
+                            sep=';',
+                            encoding='utf-8')
+    
+    return lda, pipeline , topicMatrix  , cityDataset   
 
 # example to test the city_data
 if __name__=='__main__':
     #Load files
-    lda=pickle.load(open(r"C:\Users\h192456\Desktop\backup for me\14 - City Compare\citycompare\citycompare\lda2.pkl",'rb'))
-    pipeline=pickle.load(open(r"C:\Users\h192456\Desktop\backup for me\14 - City Compare\citycompare\citycompare\pipeline.pkl",'rb'))
+    pd.set_option('display.max_colwidth', -1)   
+    lda=pickle.load(open(r'C:\Users\Nick\Dropbox\Work\Data Science\14 - City Compare\citycompare\citycompare\lda2.pkl','rb'))
+    pipeline=pickle.load(open(r'C:\Users\Nick\Dropbox\Work\Data Science\14 - City Compare\citycompare\citycompare\pipeline.pkl','rb'))
     
-    path=r'C:\Users\h192456\Desktop\backup for me\14 - City Compare\citycompare\citycompare\GlobalDatabase.csv'
+    path=r'C:\Users\Nick\Dropbox\Work\Data Science\14 - City Compare\citycompare\citycompare\GlobalDatabase.csv'
     cityDataset=pd.read_csv(path, 
                             sep=';',
                             encoding='utf-8')
@@ -151,7 +171,7 @@ if __name__=='__main__':
                                 cityDataset['description'][kMainIndex])
         mainTopicsVector=sparse2array(mainTopics)
         print(kMainIndex, time.time()-t)
-        np.savetxt(r"C:\Users\h192456\Desktop\backup for me\14 - City Compare\citycompare\citycompare\topicMatrix.csv",
+        np.savetxt(r"topicMatrix.csv",
                    topicMatrix, 
                    fmt='%3d',
                    delimiter=',')
