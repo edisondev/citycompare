@@ -19,7 +19,7 @@ import os
 from matplotlib import pyplot as plt
 
 
-NUM_TOPICS=100
+NUM_TOPICS=200
 PATH='C:\Users\Nick\Dropbox\Work\Data Science\14 - City Compare\citycompare\citycompare'
 
 def initiate_pipline():
@@ -42,8 +42,55 @@ def return_tokens(pipeline, text):
     # remove stop words from tokens
     stopped_tokens = [i for i in tokens if not i in pipeline['stop_words']]
     # stem tokens
-    stemmed_tokens = [pipeline['stemmer'].stem(i) for i in stopped_tokens]
-    return stemmed_tokens
+    #stemmed_tokens = [pipeline['stemmer'].stem(i) for i in stopped_tokens]
+    #return stemmed_tokens
+    return stopped_tokens
+
+def generate_word2vec_corpus():
+    filename=r'C:\Users\Nick\Dropbox\Work\Data Science\14 - City Compare\glove6B\glove.6B.200d.txt'
+    model=gensim.models.KeyedVectors.load_word2vec_format(filename, binary=False)
+    return model
+
+def get_word2vec_vector_txt(model,pipeline, text):
+    tokens=return_tokens(pipeline, text)
+    doc_vector=np.zeros([1,model.vector_size], dtype=np.float32)
+    for kToken in tokens:
+        try:
+            doc_vector=doc_vector+model[kToken]
+        except:
+            k=1
+            #do nothing
+    return doc_vector
+    
+def get_word2vec_vector_tkns(model,pipeline, tokens):
+    doc_vector=np.zeros([1,model.vector_size], dtype=np.float32)
+    for kToken in tokens:
+        try:
+            doc_vector=doc_vector+model[kToken]
+        except:
+            #do nothing
+    return doc_vector
+    
+def compare_2_vectors(model, pipeline, text1, text2):
+    tokens1=return_tokens(pipeline, text1)
+    tokens2=return_tokens(pipeline, text2)
+    if (len(tokens1)<10) | (len(tokens2)<10):
+        return 0.0
+        
+    if len(tokens1)>len(tokens2):
+        tokens1=tokens1[0:len(tokens2)]
+    else:
+        tokens2=tokens2[0:len(tokens1)]
+    
+    dv1=get_word2vec_vector_tkns(model,pipeline, tokens1)
+    dv2=get_word2vec_vector_tkns(model,pipeline, tokens2)
+    return (1-spatial.distance.cosine(dv1, dv2))
+    
+#compare_2_vectors(model, 
+#                  pipeline, 
+#                  cityDataset['description'][0],
+#                  cityDataset['description'][7])
+
 
 #Generate LDA corpus
 def generate_LDA_corpus():
@@ -74,7 +121,7 @@ def generate_LDA_corpus():
     pipeline['dictionary'] = corpora.Dictionary(trainDocuments)
     pipeline['corpus'] = [pipeline['dictionary'].doc2bow(text) for text in trainDocuments]    
     ldamodel = gensim.models.ldamodel.LdaModel(pipeline['corpus'], 
-                                               num_topics=50, 
+                                               num_topics=NUM_TOPICS, 
                                                id2word = pipeline['dictionary'],
                                                update_every=1,
                                                chunksize=1000,
@@ -113,28 +160,33 @@ def sparse2array(sparseArray):
 
 def parseTopicMatrix(topicMatrix, cityDataset, threshold=250):
     column_names=['City1',
+                  'url1',
+                  'index2',
                   'Description1',
                   'Description2',
                   'City2',
-                  'url1',
+                  'index2',
                   'url2']
     df = pd.DataFrame(columns=column_names)
     for kMainTopic in range(0,topicMatrix.shape[0]):
-        for kSideTopic in range(0,topicMatrix.shape[0]):
+        for kSideTopic in range(0,topicMatrix.shape[1]):
             if topicMatrix[kMainTopic][kSideTopic]>threshold:
-                print(topicMatrix[kMainTopic][kSideTopic])
-                data=pd.DataFrame([[cityDataset['city'][kMainTopic],
-                                   cityDataset['description'][kMainTopic].encode('ascii','ignore').decode('unicode_escape'),
-                                   cityDataset['description'][kSideTopic].encode('ascii','ignore').decode('unicode_escape'),
-                                   cityDataset['city'][kSideTopic],
-                                   cityDataset['download_link'][kMainTopic],
-                                   cityDataset['download_link'][kSideTopic]]],
-                                   columns=column_names)
-                #print(data)
-                df=df.append(data,ignore_index=True)
+                if cityDataset['city'][kMainTopic] !=cityDataset['city'][kSideTopic]:
+                    print(topicMatrix[kMainTopic][kSideTopic],kMainTopic,kSideTopic)
+                    data=pd.DataFrame([[cityDataset['city'][kMainTopic],
+                                        cityDataset['download_link'][kMainTopic],
+                                        kMainTopic,
+                                        cityDataset['description'][kMainTopic].encode('ascii','ignore').decode('unicode_escape'),
+                                        cityDataset['description'][kSideTopic].encode('ascii','ignore').decode('unicode_escape'),
+                                        cityDataset['city'][kSideTopic],
+                                        kSideTopic,
+                                        cityDataset['download_link'][kSideTopic]]],
+                                        columns=column_names)
+                    #print(data)
+                    df=df.append(data,ignore_index=True)
                 
     df.to_html(os.path.join(r'C:\Users\Nick\Dropbox\Work\Data Science\14 - City Compare\citycompare\citycompare',
-                            r'matchedDatasets.html'))
+                            r'matchedDatasets_200.html'))
     return df
 
 
@@ -171,6 +223,7 @@ if __name__=='__main__':
                             sep=';',
                             encoding='utf-8')
     
+    #LDA
     #pp=initiate_pipline()
     topicMatrix=np.zeros([len(cityDataset),len(cityDataset)],
                           dtype=np.uint8)
@@ -205,5 +258,50 @@ if __name__=='__main__':
     
     plt.imshow(topicMatrix, interpolation='nearest')
     plt.show()
+    
+    
+    #Word2Vec
+    #Word2Vec
+    #model=generate_word2vec_corpus()
+    t=time.time()
+    for kMainIndex in range(0,len(cityDataset)):
+        if (kMainIndex%50)==0:
+            print(kMainIndex, time.time()-t)
+#            np.savetxt(r'C:\Users\Nick\Dropbox\Work\Data Science\14 - City Compare\citycompare\citycompare\topicMatrix_wv_200.csv',
+#                       topicMatrix, 
+#                       fmt='%3d',
+#                       delimiter=',')
+        for kSideIndex in range (0,len(cityDataset)):
+            if kSideIndex == kMainIndex:
+                continue
+            cosSim=compare_2_vectors(model,
+                                     pipeline, 
+                                     cityDataset['description'][kMainIndex], 
+                                     cityDataset['description'][kSideIndex])
+            #calcualte cosine similarity
+            topicMatrix[kMainIndex][kSideIndex]=np.uint8(255*cosSim)
+#            if cosSim>0.97:
+#                #print(kMainIndex)
+#                print(cityDataset['description'][kMainIndex])
+#                print(kSideIndex)
+#                print(cityDataset['description'][kSideIndex])
+#                print(cosSim)
+#                print("\n")
+    
+    print(time.time()-t)
+    
+    plt.imshow(topicMatrix, interpolation='nearest')
+    plt.show()
+    
+    
+    #Laod the word2vec file
+    path=r'C:\Users\Nick\Dropbox\Work\Data Science\14 - City Compare\citycompare\citycompare\topicMatrix_wv_200.csv'
+    topicMatrix=np.loadtxt(path, 
+                           dtype=np.uint8,
+                           delimiter=',')
+    df_small=parseTopicMatrix(topicMatrix,cityDataset,242)
+    
     #Get topic of 2 files
     print('Test')
+    #Dev Notes:
+    #Need to take the same number of words from both datasets (truncate to shortest one?)
